@@ -1,2 +1,3 @@
 .ipynb_checkpoints
 .streamlit/secrets.toml
+.vscode
