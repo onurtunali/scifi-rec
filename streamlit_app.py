@@ -1,15 +1,12 @@
 import numpy as np # linear algebra
 import pandas as pd
-from scipy.sparse.construct import rand # data processing, CSV file I/O (e.g. pd.read_csv)
+from scipy.sparse.construct import rand 
+from scipy.sparse import csr_matrix, hstack
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.utils.extmath import randomized_range_finder
 import streamlit as st
-
 import streamlit.components.v1 as components
-HtmlFile = open("index.html", 'r', encoding='utf-8')
-source_code = HtmlFile.read() 
-components.html(source_code, width=1200, height=500)
 
 df = pd.read_csv("data/scifi_with_cover.csv")
 
@@ -25,12 +22,15 @@ def combine_features(record):
 
 df["combined_features"] = df.apply(combine_features, axis=1)
 
-book_user_like = "Neuromancer"
+book_user_like = st.sidebar.text_area('Enter the book you like')
+# book_user_like = st.text_area('Area for textual entry')
+book_user_like = "Count Zero"
 book_ID = df[df.book_title == book_user_like].id[0]
 book_record = df.loc[book_ID]
 book_genres = set(book_record.genres.split(" "))
+book_cover = df[df.book_title == book_user_like].cover[0]
 
-from scipy.sparse import csr_matrix, hstack
+
 
 def combine_name(author_name):
     return author_name.lower().replace(" ", "_")
@@ -87,7 +87,12 @@ for element in sorted_similar_books[1:limit]:
     genres = df[df.id == book_index]["genres"].values[0]
     genres = set(genres.split(" "))
     common_genres = book_genres.intersection(genres)
-    st.write(f"Book: {recommendation.upper()} Author:{author.upper()} and Genres: {common_genres}")
+    cover = df[df.id == book_index]["cover"][0]
+    st.write(f"{recommendation.upper()}")
+    st.write(f"{author.upper()} ")
+    st.write(f"{common_genres}")
+    st.image(cover)
+
 
 random_books = np.random.randint(0, df.shape[0], 10)
 random_books_cover = df.iloc[random_books].cover.values
