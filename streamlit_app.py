@@ -1,5 +1,4 @@
 import time
-from utilities import combine_features, combine_name
 import numpy as np  # linear algebra
 import pandas as pd
 from scipy.sparse import csr_matrix, hstack
