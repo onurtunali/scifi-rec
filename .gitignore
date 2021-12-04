@@ -2,3 +2,4 @@
 .streamlit/secrets.toml
 .vscode
 __pycache__/
+test_df.py

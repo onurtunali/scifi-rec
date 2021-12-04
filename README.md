@@ -22,3 +22,16 @@ $ mongoimport --uri mongodb+srv://<username>:<password>@cluster0.o3o9q.mongodb.n
 
 If DNS error occurs, `/etc/resolv.conf` needs to be modified. Add `8.8.8.8` to the file then try to import again.
 
+# Performance
+
+Streamlit cloud offers limited resources for free tier therefore memory heavy apps often crashes due to this issue. Below is a memory profile recorded with "psrecord" after optimization.
+
+Another issue `st.cache` inflates very quickly if big matrices are used. For this reason matrices in the code are not cached. In addition, they are pretty frequently updated, so there was no point in preallocation.  
+
+<img src="img/memory_profile_before.png" width="450">
+
+**Fig 1:** *Memory profile with caching count matrices.*
+
+<img src="img/memory_profile_after.png" width="450">
+
+**Fig 2:** *Memory profile without caching and limiting count matrices to genres.*

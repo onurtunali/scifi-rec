@@ -6,6 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import streamlit as st
 import streamlit.components.v1 as components
+from memory_profiler import profile
 start_time = time.perf_counter()
 
 st.set_page_config(page_title="Sci-fi Rec System", layout="wide")
@@ -47,17 +48,13 @@ except:
     st.warning("Sorry! No such book is found")
     st.stop()
 
-
 genre_index = [preferred_genre.lower().replace(" ", "_") in item for item in df_org.genres]
 genre_index[book_ID] = True
 
-df = df_org.loc[genre_index].reset_index(drop=True)
+df = df_org.loc[genre_index]
 ROWS, COLUMNS = df.shape
-if ROWS < 3:
-    st.warning("There is not enough records for this genre :(")
-    st.stop()
 
-book_index = df[df.id == book_ID].index.values[0]
+book_index = df[df.id == book_ID].id.values[0]
 
 uniq_genres = set()
 uniq_authors = set()
@@ -76,7 +73,7 @@ uniq_genres_authors = uniq_authors.union(uniq_genres)
 author_feature_dict = {item: index for index, item in enumerate(uniq_authors)}
 genre_feature_dict = {item: index for index, item in enumerate(uniq_genres)}
 
-
+@profile
 def get_author_weight_matrix(df, author_feature_dict):
     author_weight_matrix = np.zeros((df.shape[0], len(author_feature_dict)))
 
@@ -88,6 +85,7 @@ def get_author_weight_matrix(df, author_feature_dict):
     return csr_matrix(author_weight_matrix)
 
 
+@profile    
 def get_genre_weight_matrix(df, genre_feature_dict):
     genre_weight_matrix = np.zeros((df.shape[0], len(genre_feature_dict)))
 
@@ -102,6 +100,7 @@ def get_genre_weight_matrix(df, genre_feature_dict):
 
     return csr_matrix(genre_weight_matrix)
 
+@profile
 def get_desc_count_matrix(df):
     cv = CountVectorizer(stop_words="english", max_features=5000)
     desc_count_matrix = cv.fit_transform(df["book_description"])
@@ -120,6 +119,7 @@ if not int(genre_weight) == 0:
     is_genre_weight = True
     genre_weight_matrix =  get_genre_weight_matrix(df, genre_feature_dict)
 
+@profile
 def get_cosine_similarity(combined_matrix):
     return cosine_similarity(combined_matrix)
 
@@ -144,17 +144,14 @@ limit = 5
 
 recommended_books = [item[0] for item in sorted_similar_books[1:limit]]
 
+# st.write(df.loc[recommended_books, ["cover", "book_title", "author_name", "book_description", "rating_score"]])
 with open("layouts/results.md") as f:
     page = f.read()
     for index in recommended_books:
         record = df.iloc[index]
-        cover = record.cover.replace("\n", "")
-        title = record.book_title.replace("\n", "")
-        author = record.author_name.replace("\n", "")
-        description = record.book_description.replace("\n", "")
-        rating = record.rating_score
-        str_ = f'| <img src="{cover}" width="100"> | **{title}** | {author} | {description[:500]} | {rating} |'
-        str_ = str_.replace("\n", "")
+        # temp = df_rec.iloc[i, :].values
+        str_ = f'| <img src="{record.cover}" width="100"> | **{record.book_title}** | \
+        {record.author_name} | {record.book_description[:250]} | {record.rating_score} |'
         page = page + "\n" + str_
 
     st.markdown(page, unsafe_allow_html=True)
