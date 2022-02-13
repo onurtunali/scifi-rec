@@ -33,7 +33,16 @@ st.markdown("# Sci-fi Book Recommendation System")
 
 # Sidebar Layout
 st.sidebar.title("Preferences")
-book_user_like = st.sidebar.text_input("Enter the book you like", value="Neuromancer")
+
+query_params = st.experimental_get_query_params()
+print(query_params)
+
+if query_params:
+    book_user_like = st.sidebar.text_input("Enter the book you like", value=query_params['book_title'][0])
+else:
+    book_user_like = st.sidebar.text_input("Enter the book you like", value="Neuromancer")
+
+
 author_weight = st.sidebar.number_input("Author weight", value=0)
 genre_weight = st.sidebar.number_input("Genre weight", value=0)
 preferred_genre = st.sidebar.selectbox("Choose a genre", genre_list, index=135)
